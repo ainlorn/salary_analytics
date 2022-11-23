@@ -336,7 +336,8 @@ class Report:
         html = template.render(stats=self.stats, os=os, int=int)
         pdfkit.from_string(html, filename, options={"enable-local-file-access": None})
 
-if __name__ == '__main__':
+
+def main():
     file = input('Введите название файла: ')
     name = input('Введите название профессии: ')
     dataset = DataSetReader(file).read()
@@ -347,3 +348,7 @@ if __name__ == '__main__':
     report.generate_excel()
     report.generate_image()
     report.generate_pdf()
+
+
+if __name__ == '__main__':
+    main()

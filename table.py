@@ -322,17 +322,21 @@ class DataSetReader:
         return DataSet(self.path, vacancies)
 
 
-if __name__ == '__main__':
+def main():
     reader = InputReader()
     opts = reader.read()
     if reader.errors:
         print('\n'.join(reader.errors))
-        exit()
+        return
 
     try:
         dataset = DataSetReader(opts.file_name).read()
     except Exception as e:
         print(e.args[0])
-        exit()
+        return
 
     TableGenerator(opts, dataset).print()
+
+
+if __name__ == '__main__':
+    main()
