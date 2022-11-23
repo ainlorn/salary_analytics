@@ -1,0 +1,84 @@
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            background-color: white;
+        }
+        img {
+            width: 80%;
+        }
+        * {
+            font-family: "Verdana", sans-serif;
+            text-align: center;
+        }
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 5px;
+        }
+        .city-tables {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+        .city-table {
+            width: 48%;
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+    <center>
+        <h1>Аналитика по зарплатам и городам для профессии {{ stats.profession_name }}</h1>
+        <img src="file://{{ os.path.abspath('graph.png') }}">
+        <h2>Статистика по годам</h2>
+        <table>
+            <tr>
+                <th>Год</th>
+                <th>Средняя зарплата</th>
+                <th>Средняя зарплата - {{ stats.profession_name }}</th>
+                <th>Количество вакансий</th>
+                <th>Количество вакансий - {{ stats.profession_name }}</th>
+            </tr>
+            {% for year in stats.years %}
+                <tr>
+                    <td>{{ year }}</td>
+                    <td>{{ int(stats.salary_dynamic[year]) }}</td>
+                    <td>{{ int(stats.salary_dynamic_filtered[year]) }}</td>
+                    <td>{{ stats.count_dynamic[year] }}</td>
+                    <td>{{ stats.count_dynamic_filtered[year] }}</td>
+                </tr>
+            {% endfor %}
+        </table>
+        <h2>Статистика по городам</h2>
+        <div class="city-tables">
+            <table class="city-table" style="margin-right:20px">
+                <tr>
+                    <th>Город</th>
+                    <th>Уровень зарплат</th>
+                </tr>
+                {% for city, salary in stats.city_salaries.items() %}
+                    <tr>
+                        <td>{{ city }}</td>
+                        <td>{{ int(salary) }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+            <table class="city-table">
+                <tr>
+                    <th>Город</th>
+                    <th>Доля вакансий</th>
+                </tr>
+                {% for city, count in stats.city_counts.items() %}
+                    <tr>
+                        <td>{{ city }}</td>
+                        <td>{{ "{:.2f}%".format(count * 100).replace('.', ',') }}</td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </center>
+</body>
+</html>
