@@ -323,7 +323,7 @@ class DataSetReader:
 
 
 def main():
-    reader = InputReader()
+    reader = InputReader()  # abcdef
     opts = reader.read()
     if reader.errors:
         print('\n'.join(reader.errors))
