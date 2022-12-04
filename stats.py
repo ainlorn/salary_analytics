@@ -28,13 +28,41 @@ currency_to_rub = {
 
 
 class DataSet:
+    """Класс для представления датасета
+
+    Attributes:
+        file_name (str): Путь к файлу
+        vacancies_objects (list[Vacancy]): Список вакансий
+    """
     def __init__(self, file_name, vacancies_objects):
+        """Инициализирует датасет
+
+        Args:
+            file_name (str): Путь к файлу
+            vacancies_objects (list[Vacancy]): Список вакансий
+        """
         self.file_name = file_name
         self.vacancies_objects = vacancies_objects
 
 
 class Vacancy:
+    """
+    Вакансия
+
+    Attributes:
+        name (str): Название вакансии
+        salary (Salary): Заработная плата
+        area_name (str): Название города
+        published_at (str): Дата публикации вакансии
+    """
     def __init__(self, name, salary, area_name, published_at):
+        """
+        Args:
+            name (str): Название вакансии
+            salary (Salary): Заработная плата
+            area_name (str): Название города
+            published_at (str): Дата публикации вакансии
+        """
         self.name = name
         self.salary = salary
         self.area_name = area_name
@@ -42,22 +70,61 @@ class Vacancy:
 
 
 class Salary:
-    def __init__(self, salary_from, salary_to, salary_currency):
+    """Класс для представления зарплаты
+
+    Attributes:
+        salary_from (float): Нижняя граница вилки оклада
+        salary_to (float): Верхняя граница вилки оклада
+        salary_currency (str): Валюта оклада
+    """
+    def __init__(self, salary_from, salary_to, salary_gross, salary_currency):
+        """Инициализирует объект Salary
+
+        Args:
+            salary_from (int): Нижняя граница вилки оклада
+            salary_to (int): Верхняя граница вилки оклада
+            salary_currency (str): Валюта оклада
+        """
         self.salary_from = salary_from
         self.salary_to = salary_to
+        self.salary_gross = salary_gross
         self.salary_currency = salary_currency
 
 
 class DataSetReader:
+    """
+    Класс, используемый для считывания датасета из csv-файла
+
+    Attributes:
+        path (str): Путь к файлу
+    """
     def __init__(self, path):
+        """
+        Инициализирует объект DataSetReader
+
+        Args:
+            path (str): Путь к файлу
+        """
         self.path = path
 
     def read(self):
+        """
+        Считывает датасет из файла
+
+        Returns:
+             Dataset: датасет
+        """
         csv = self._read_csv()
         lines = self._parse_csv(*csv)
         return self._convert_to_dataset(lines)
 
     def _read_csv(self):
+        """
+        Считывает строки из csv-файла
+
+        Returns:
+             tuple[list[str], list[list[str]]]: заголовок и список строк таблицы
+        """
         with open(self.path, newline='', encoding='utf-8-sig') as f:
             reader = csv.reader(f)
             try:
@@ -70,6 +137,12 @@ class DataSetReader:
             return header, lines
 
     def _parse_csv(self, header, lines):
+        """
+        Очищает файл от пустых строк и html-тегов и преобразует индивидуальные строки в словари
+
+        Returns:
+            list[dict[str, *]]: Список строк таблицы
+        """
         lines_clean = []
         for line in lines:
             if '' in line or len(line) != len(header):
@@ -88,6 +161,12 @@ class DataSetReader:
         return lines_clean
 
     def _convert_to_dataset(self, lines):
+        """
+        Преобразует строки таблицы в датасет
+
+        Args:
+            lines (list[dict[str, *]]): Список строк таблицы
+        """
         vacancies = []
         for l in lines:
             salary = Salary(l['salary_from'], l['salary_to'], l['salary_currency'])
@@ -97,15 +176,30 @@ class DataSetReader:
 
 
 class MeanRepresentation:
+    """Класс для представления среднего арифметического
+
+    Attributes:
+        sum (int): Сумма элементов
+        count (int): Количество элементов
+    """
     def __init__(self):
         self.sum = 0
         self.count = 0
 
     def add(self, num):
+        """
+        Добавляет новый элемент
+        """
         self.sum += num
         self.count += 1
 
     def mean(self):
+        """
+        Возвращает значение среднего арифметического
+
+        Returns:
+            float: Среднее арифметическое
+        """
         if self.count == 0:
             return 0
         return self.sum / self.count
@@ -121,17 +215,39 @@ class MeanRepresentation:
 
 
 class MyDefaultDict(defaultdict):
+    """Перезаписывает метод __repr__ defaultdict на стандартный"""
     def __str__(self) -> str:
         return dict.__repr__(self)
 
 
 class Statistics:
+    """Класс, содержащий статистику по вакансиям
+
+    Attributes:
+        dataset (DataSet): датасет
+        profession_name (str): Название профессии, по которой генерируется дополнительная статистика
+        salary_dynamic (dict): Динамика уровня зарплат по годам
+        count_dynamic (dict): Динамика количества вакансий по годам
+        salary_dynamic_filtered (dict): Динамика уровня зарплат по годам для выбранной профессии
+        count_dynamic_filtered (dict): Динамика количества вакансий по годам для выбранной профессии
+        city_salaries (dict): Уровень зарплат по городам (в порядке убывания)
+        city_counts (dict): Доля вакансий по городам (в порядке убывания)
+    """
     def __init__(self, dataset, profession_name):
+        """Инициализирует объект Statistics и генерирует статистику по вакансиям
+
+        Args:
+            dataset (DataSet): датасет
+            profession_name (str): Название профессии, по которой генерируется дополнительная статистика
+        """
         self.dataset = dataset
         self.profession_name = profession_name
         self._generate()
 
     def _generate(self):
+        """
+        Генерирует статистику по вакансиям
+        """
         name = self.profession_name
         dataset = self.dataset
         defaultdict = MyDefaultDict
@@ -187,6 +303,9 @@ class Statistics:
         self.city_counts = city_counts
 
     def print(self):
+        """
+        Выводит статистику по вакансиям
+        """
         print('Динамика уровня зарплат по годам:', self.salary_dynamic)
         print('Динамика количества вакансий по годам:', self.count_dynamic)
         print('Динамика уровня зарплат по годам для выбранной профессии:', self.salary_dynamic_filtered)
@@ -200,10 +319,18 @@ class Statistics:
 
 
 class Report:
+    """Класс для генерации отчета
+    """
     def __init__(self, stats: Statistics):
+        """Инициализирует объект
+
+        Args:
+            stats (Statistics): статистика
+        """
         self.stats = stats
 
     def generate_excel(self, filename='report.xlsx'):
+        """Генерирует отчет в формате excel"""
         wb = Workbook()
         self._generate_excel_year_statistic(wb.create_sheet('Статистика по годам'))
         self._generate_excel_city_statistic(wb.create_sheet('Статистика по городам'))
@@ -211,6 +338,7 @@ class Report:
         wb.save(filename)
 
     def _generate_excel_year_statistic(self, ws):
+        """Генерирует страницу со статистикой по годам"""
         ws.append(('Год', 'Средняя зарплата', f'Средняя зарплата - {self.stats.profession_name}',
                    'Количество вакансий', f'Количество вакансий - {self.stats.profession_name}'))
         self._excel_make_bold(ws, ws.calculate_dimension())
@@ -222,6 +350,7 @@ class Report:
         self._excel_set_column_widths(ws)
 
     def _generate_excel_city_statistic(self, ws):
+        """Генерирует страницу со статистикой по городам"""
         ws.append(('Город', 'Уровень зарплат', '', 'Город', 'Доля вакансий'))
         self._excel_make_bold(ws, ws.calculate_dimension())
         col = 1
@@ -265,6 +394,7 @@ class Report:
             ws.column_dimensions[col].width = value
 
     def generate_image(self, filename='graph.png'):
+        """Генерирует изображение с графиками"""
         fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2)
         self._make_plt1(ax1)
         self._make_plt2(ax2)
@@ -275,6 +405,7 @@ class Report:
         fig.savefig(filename)
 
     def _make_plt1(self, ax):
+        """диаграмма - уровень зарплат по годам для вывода динамики уровня зарплат по годам как общий, так и для выбранной профессии"""
         xticks = np.arange(len(self.stats.years)), self.stats.years
         width = 0.4
         x1 = list(map(int, self.stats.salary_dynamic.values()))
@@ -292,6 +423,7 @@ class Report:
         ax.legend(fontsize=8)
 
     def _make_plt2(self, ax):
+        """диаграмма - количество вакансий по годам как общий, так и для выбранной профессии"""
         xticks = np.arange(len(self.stats.years)), self.stats.years
         width = 0.4
         x1 = list(map(int, self.stats.count_dynamic.values()))
@@ -309,6 +441,7 @@ class Report:
         ax.legend(fontsize=8)
 
     def _make_plt3(self, ax):
+        """горизонтальная диаграмма - уровень зарплат по городам"""
         keys = list(map(lambda x: x.replace('-', '-\n').replace(' ', '\n'), self.stats.city_salaries.keys()))
         yticks = np.arange(len(keys)), keys
         y = list(map(int, self.stats.city_salaries.values()))
@@ -322,6 +455,7 @@ class Report:
         ax.grid(axis='x')
 
     def _make_plt4(self, ax):
+        """круговая диаграмма - количество вакансий по городам"""
         labels = list(self.stats.city_counts.keys())
         labels.append('Другие')
         x = list(self.stats.city_counts.values())
@@ -331,6 +465,7 @@ class Report:
         ax.set_title('Доля вакансий по городам')
 
     def generate_pdf(self, filename='report.pdf'):
+        """Генерирует отчет в формате pdf, содержащий таблицу и графики"""
         env = Environment(loader=FileSystemLoader('.'))
         template = env.get_template("template.html")
         html = template.render(stats=self.stats, os=os, int=int)
@@ -338,6 +473,11 @@ class Report:
 
 
 def main():
+    """
+    Входная точка программы.
+    Получает на вход путь к файлу и название профессии, генерирует по ним статистику и сохраняет отчет во всех
+    возможных форматах.
+    """
     file = input('Введите название файла: ')
     name = input('Введите название профессии: ')
     dataset = DataSetReader(file).read()

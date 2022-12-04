@@ -90,12 +90,34 @@ sorting_keys = {
 
 
 class DataSet:
+    """Класс для представления датасета
+
+    Attributes:
+        file_name (str): Путь к файлу
+        vacancies_objects (list[Vacancy]): Список вакансий
+    """
     def __init__(self, file_name, vacancies_objects):
+        """Инициализирует датасет
+
+        Args:
+            file_name (str): Путь к файлу
+            vacancies_objects (list[Vacancy]): Список вакансий
+        """
         self.file_name = file_name
         self.vacancies_objects = vacancies_objects
 
 
 class Options:
+    """Параметры программы
+
+    Attributes:
+        file_name (str): Путь к файлу
+        start (int): Индекс первой выводимой вакансии
+        end (int): Индекс последней выводимой вакансии
+        columns (list[str]): Выводимые столбцы
+        sorting_params (tuple[str, bool]): Параметры сортировки (столбец для сортировки, обратный порядок сортировки)
+        filtering_params (tuple[str, str]): Параметры фильтрации (столбец, значение столбца)
+    """
     def __init__(self):
         self.file_name = None
         self.start = None
@@ -106,10 +128,18 @@ class Options:
 
 
 class InputReader:
+    """Класс, используемый для ввода информации пользователем
+
+    Attributes:
+        errors (list[str]): список ошибок, возникших при вводе
+    """
     def __init__(self):
         self.errors = []
 
     def read(self):
+        """
+        Считывает информацию со стандартного ввода
+        """
         opts = Options()
         opts.file_name = input('Введите название файла: ')
         opts.filtering_params = self.read_filter_params()
@@ -119,6 +149,9 @@ class InputReader:
         return opts
 
     def read_filter_params(self):
+        """
+        Считывает параметры фильтрации
+        """
         line = input('Введите параметр фильтрации: ')
         if line:
             if ': ' not in line:
@@ -134,6 +167,9 @@ class InputReader:
         return None, None
 
     def read_start_end(self):
+        """
+        Считывает диапазон ввода
+        """
         start = None
         end = None
         line = input('Введите диапазон вывода: ')
@@ -145,6 +181,9 @@ class InputReader:
         return start, end
 
     def read_columns(self):
+        """
+        Считывает список необходимых столбцов
+        """
         line = input('Введите требуемые столбцы: ')
         if line:
             columns = line.split(', ')
@@ -152,6 +191,9 @@ class InputReader:
         return None
 
     def read_sorting_params(self):
+        """
+        Считывает параметры сортировки
+        """
         param = input('Введите параметр сортировки: ')
         if param == '':
             param = None
@@ -170,7 +212,20 @@ class InputReader:
 
 
 class TableGenerator:
+    """Класс, использемый для генерации таблицы
+
+    Attributes:
+        options (Options): Параметры программы
+        vacancies (list[Vacancy]): Список вакансий
+    """
     def __init__(self, options, dataset):
+        """
+        Сортирует и фильтрует данные и создаёт таблицу
+
+        Args:
+            options (Options): Параметры программы
+            dataset (DataSet): Датасет
+        """
         self.options = options
         self.vacancies = list(dataset.vacancies_objects)
         self._error_msg = None
@@ -179,12 +234,18 @@ class TableGenerator:
         self._table = self._make_table()
 
     def _sort_vacancies(self):
+        """
+        сортитрует вакансии
+        """
         sort_by = self.options.sorting_params[0]
         reverse = self.options.sorting_params[1]
         if sort_by:
             self.vacancies.sort(key=sorting_keys[sort_by], reverse=reverse)
 
     def _filter_vacancies(self):
+        """
+        Фильтрует вакансии
+        """
         _filter = self.options.filtering_params[0]
         filter_str = self.options.filtering_params[1]
         if _filter:
@@ -199,6 +260,14 @@ class TableGenerator:
 
     @staticmethod
     def _format_vacancy(v):
+        """
+        Готовит вакансию к выводу
+
+        Args:
+            v (Vacancy): вакансия
+        Returns:
+            dict: отформатированная вакансия
+        """
         _from = TableGenerator._format_num_str(v.salary.salary_from)
         _to = TableGenerator._format_num_str(v.salary.salary_to)
         _curr = value_replacements["salary_currency"][v.salary.salary_currency]
@@ -218,6 +287,12 @@ class TableGenerator:
         }
         return formatted_vacancy
 
+    """
+    Создаёт и настраивает таблицу
+    
+    Returns:
+        PrettyTable: таблица
+    """
     def _make_table(self):
         table = PrettyTable()
         table.field_names = table_fields
@@ -236,6 +311,9 @@ class TableGenerator:
         return table
 
     def print(self):
+        """
+        Выводит таблицу
+        """
         if self._error_msg:
             print(self._error_msg)
             return
@@ -251,8 +329,36 @@ class TableGenerator:
 
 
 class Vacancy:
+    """
+    Вакансия
+
+    Attributes:
+        name (str): Название вакансии
+        description (str): Описание вакансии
+        key_skills (list[str]): Ключевые навыки
+        experience_id (str): Идентификатор для требуемого опыта работы, значение можно получить
+                                из value_replacements['experience_id']
+        premium (bool): Является ли эта вакансия премиум вакансией
+        employer_name (str): Название компании
+        salary (Salary): Заработная плата
+        area_name (str): Название города
+        published_at (str): Дата публикации вакансии
+    """
     def __init__(self, name, description, key_skills, experience_id, premium, employer_name, salary, area_name,
                  published_at):
+        """
+        Args:
+            name (str): Название вакансии
+            description (str): Описание вакансии
+            key_skills (list[str]): Ключевые навыки
+            experience_id (str): Идентификатор для требуемого опыта работы, значение можно получить
+                                    из value_replacements['experience_id']
+            premium (bool): Является ли эта вакансия премиум вакансией
+            employer_name (str): Название компании
+            salary (Salary): Заработная плата
+            area_name (str): Название города
+            published_at (str): Дата публикации вакансии
+        """
         self.name = name
         self.description = description
         self.key_skills = key_skills
@@ -265,7 +371,21 @@ class Vacancy:
 
 
 class Salary:
+    """Класс для представления зарплаты
+
+    Attributes:
+        salary_from (float): Нижняя граница вилки оклада
+        salary_to (float): Верхняя граница вилки оклада
+        salary_currency (str): Валюта оклада
+    """
     def __init__(self, salary_from, salary_to, salary_gross, salary_currency):
+        """Инициализирует объект Salary
+
+        Args:
+            salary_from (int): Нижняя граница вилки оклада
+            salary_to (int): Верхняя граница вилки оклада
+            salary_currency (str): Валюта оклада
+        """
         self.salary_from = salary_from
         self.salary_to = salary_to
         self.salary_gross = salary_gross
@@ -273,15 +393,39 @@ class Salary:
 
 
 class DataSetReader:
+    """
+    Класс, используемый для считывания датасета из csv-файла
+
+    Attributes:
+        path (str): Путь к файлу
+    """
     def __init__(self, path):
+        """
+        Инициализирует объект DataSetReader
+
+        Args:
+            path (str): Путь к файлу
+        """
         self.path = path
 
     def read(self):
+        """
+        Считывает датасет из файла
+
+        Returns:
+             Dataset: датасет
+        """
         csv = self._read_csv()
         lines = self._parse_csv(*csv)
         return self._convert_to_dataset(lines)
 
     def _read_csv(self):
+        """
+        Считывает строки из csv-файла
+
+        Returns:
+             tuple[list[str], list[list[str]]]: заголовок и список строк таблицы
+        """
         with open(self.path, newline='', encoding='utf-8-sig') as f:
             reader = csv.reader(f)
             try:
@@ -294,6 +438,12 @@ class DataSetReader:
             return header, lines
 
     def _parse_csv(self, header, lines):
+        """
+        Очищает файл от пустых строк и html-тегов и преобразует индивидуальные строки в словари
+
+        Returns:
+            list[dict[str, *]]: Список строк таблицы
+        """
         lines_clean = []
         for line in lines:
             if '' in line or len(line) != len(header):
@@ -312,6 +462,12 @@ class DataSetReader:
         return lines_clean
 
     def _convert_to_dataset(self, lines):
+        """
+        Преобразует строки таблицы в датасет
+
+        Args:
+            lines (list[dict[str, *]]): Список строк таблицы
+        """
         vacancies = []
         for l in lines:
             key_skills = l['key_skills'].split('\n')
@@ -323,6 +479,10 @@ class DataSetReader:
 
 
 def main():
+    """
+    Точка входа программы.
+    Считывает со входа путь к файлу и параметры вывода и выводит данные в виде таблицы.
+    """
     reader = InputReader()
     opts = reader.read()
     if reader.errors:
