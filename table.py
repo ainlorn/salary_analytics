@@ -89,6 +89,37 @@ sorting_keys = {
 }
 
 
+def convert_date(date_str):
+    """Конвертирует дату из строки в список
+
+    >>> convert_date('2022-12-25')
+    [2022, 12, 25]
+    >>> convert_date('2022-00-25')
+    Traceback (most recent call last):
+     ...
+    Exception: Incorrect date!
+    >>> convert_date('2022-13-25')
+    Traceback (most recent call last):
+     ...
+    Exception: Incorrect date!
+    >>> convert_date('2022-12-00')
+    Traceback (most recent call last):
+     ...
+    Exception: Incorrect date!
+    >>> convert_date('2022-12-99')
+    Traceback (most recent call last):
+     ...
+    Exception: Incorrect date!
+    """
+    match = re.match(r'^(\d{4})-(\d{2})-(\d{2}).*$', date_str)
+    result = [int(match[1]), int(match[2]), int(match[3])]
+    if result[1] < 1 or result[1] > 12 or result[2] > 31 or result[2] < 1:
+        raise Exception('Incorrect date!')
+
+    return result
+
+
+
 class DataSet:
     """Класс для представления датасета
 
@@ -272,7 +303,7 @@ class TableGenerator:
         _to = TableGenerator._format_num_str(v.salary.salary_to)
         _curr = value_replacements["salary_currency"][v.salary.salary_currency]
         _gross = value_replacements["salary_gross"][v.salary.salary_gross]
-        match = re.match(r'^(\d{4})-(\d{2})-(\d{2}).*$', v.published_at)
+        match = convert_date(v.published_at)
 
         formatted_vacancy = {
             'Название': v.name,
@@ -385,11 +416,41 @@ class Salary:
             salary_from (int): Нижняя граница вилки оклада
             salary_to (int): Верхняя граница вилки оклада
             salary_currency (str): Валюта оклада
+
+        >>> type(Salary(10, 20, False, 'RUR')).__name__
+        'Salary'
+        >>> Salary(10, 20, False, 'RUR').salary_from
+        10
+        >>> Salary(10, 20, False, 'RUR').salary_to
+        20
+        >>> Salary(10, 20, False, 'RUR').salary_currency
+        'RUR'
         """
         self.salary_from = salary_from
         self.salary_to = salary_to
         self.salary_gross = salary_gross
         self.salary_currency = salary_currency
+
+    def get_salary_in_rub(self):
+        """Вычисляет среднюю зарплату и переводит в рубли
+
+        Returns:
+            float: Средняя зарплата в рублях
+
+        >>> Salary(10, 20, False, 'RUR').get_salary_in_rub()
+        15.0
+        >>> Salary(10.0, 20, False, 'RUR').get_salary_in_rub()
+        15.0
+        >>> Salary(10, 30.0, False, 'RUR').get_salary_in_rub()
+        20.0
+        >>> Salary(10, 30, False, 'EUR').get_salary_in_rub()
+        1198.0
+        >>> Salary(1000, 2000, False, 'KZT').get_salary_in_rub()
+        195.0
+        >>> Salary(2000, 4000, False, 'AZN').get_salary_in_rub()
+        107040.0
+        """
+        return ((self.salary_to + self.salary_from) / 2) * currency_to_rub[self.salary_currency]
 
 
 class DataSetReader:
