@@ -4,3 +4,5 @@
 <img src="img/split.png" alt></img>
 ## Multiprocessing
 <img src="img/mp.png" alt></img>
+## concurrent.futures
+<img src="img/cf.png" alt></img>
