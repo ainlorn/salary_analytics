@@ -3,44 +3,35 @@ import os
 from stats import DataSetReader, MeanRepresentation, currency_to_rub
 
 
-def process_chunk(files):
-    for file in files:
-        dataset = DataSetReader(file).read()
-        year = int(dataset.vacancies_objects[0].published_at[:4])
+def process_chunk(file):
+    dataset = DataSetReader(file).read()
+    year = int(dataset.vacancies_objects[0].published_at[:4])
 
-        avg_salary = MeanRepresentation()
-        avg_salary_filtered = MeanRepresentation()
-        count = 0
-        count_filtered = 0
+    avg_salary = MeanRepresentation()
+    avg_salary_filtered = MeanRepresentation()
+    count = 0
+    count_filtered = 0
 
-        for v in dataset.vacancies_objects:
-            salary = int((float(v.salary.salary_to) + float(v.salary.salary_from)) / 2
-                         * currency_to_rub[v.salary.salary_currency])
-            avg_salary.add(salary)
-            count += 1
-            if vac in v.name:
-                count_filtered += 1
-                avg_salary_filtered.add(salary)
+    for v in dataset.vacancies_objects:
+        salary = int((float(v.salary.salary_to) + float(v.salary.salary_from)) / 2
+                     * currency_to_rub[v.salary.salary_currency])
+        avg_salary.add(salary)
+        count += 1
+        if vac in v.name:
+            count_filtered += 1
+            avg_salary_filtered.add(salary)
 
-        return year, (int(avg_salary), int(avg_salary_filtered), count, count_filtered)
+    return year, (int(avg_salary), int(avg_salary_filtered), count, count_filtered)
 
 
 def main(csv_dir, selected_vacancy):
     global vac
     vac = selected_vacancy
     files = os.listdir(csv_dir)
-    process_count = os.cpu_count() // 2
-
-    process_batches = []
-    for i in range(process_count):
-        process_batches.append([])
-
-    for i, file in enumerate(files):
-        process_batches[i % process_count].append(os.path.join(csv_dir, file))
 
     results = []
-    with concurrent.futures.ProcessPoolExecutor() as executor:
-        results = list(executor.map(process_chunk, process_batches))
+    with concurrent.futures.ProcessPoolExecutor(max_workers=os.cpu_count() // 2) as executor:
+        results = list(executor.map(process_chunk, map(lambda x: os.path.join(csv_dir, x), files)))
 
     results.sort(key=lambda x: x[0])
 
