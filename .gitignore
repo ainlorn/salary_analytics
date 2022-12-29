@@ -2,4 +2,5 @@
 venv/
 *.csv
 !exchange_rates.csv
+!vacancies_sample.csv
 __pycache__/
