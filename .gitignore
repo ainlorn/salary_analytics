@@ -1,4 +1,5 @@
 .idea/
 venv/
 *.csv
+!exchange_rates.csv
 __pycache__/
