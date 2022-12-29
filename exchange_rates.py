@@ -43,6 +43,7 @@ def main(input_file: str):
             current_date = (current_date[0] + 1, 1)
         else:
             current_date = (current_date[0], current_date[1] + 1)
+    results.append(load_exchange_rates_for_month(date_end[1], date_end[0], currencies))
 
     results_df = DataFrame(results)
     results_df.to_csv('exchange_rates.csv', index=False)
