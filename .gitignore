@@ -3,4 +3,5 @@ venv/
 *.csv
 !exchange_rates.csv
 !vacancies_sample.csv
+!hh.csv
 __pycache__/
